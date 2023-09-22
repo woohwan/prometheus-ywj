@@ -19,7 +19,15 @@ data:
           names:
             - default
       relabel_configs:
-        # service annotation에 prometheus_io/scrap: "true"" 추가해야 endporint로 등록 됨
       - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
         regex: true
         action: keep
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_path]
+        regex: (.+)
+        action: replace
+        target_label: __metrics_path__
+      - source_labels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        action: replace
+        replacement: $1:$2
+        target_label: __address__

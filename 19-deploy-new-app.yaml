@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: flask-two
+  name: flask-two
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: flask-two
+  template:
+    metadata:
+      labels:
+        app: flask-two
+    spec:
+      containers:
+      - name: flask
+        image: youngwjung/prometheus-flask-exporter
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 500m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-two
+  labels:
+    app: flask-two
+  annotations:
+    prometheus.io/scrape: "true"
+spec:
+  ports:
+  - port: 80
+  selector:
+    app: flask-two
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: load-generator-two
+  labels:
+    app: load-generator
+spec:
+  containers:
+  - name: load-generator
+    image: busybox
+    args:
+    - /bin/sh
+    - -c
+    - while sleep 0.1; do wget -q -O- http://flask-two; done
